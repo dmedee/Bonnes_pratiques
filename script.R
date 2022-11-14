@@ -190,4 +190,4 @@ df3 <- df2 %>%
 df3[, 1] <- factor(df3$surf, ordered = TRUE)
 df3[, "cs1"] <- factor(df3$cs1)
 polr(surf ~ cs1 + factor(ur), 
-     df3 %>% filter(couple == "2" && as.numeric(aged > 40 && aged < 60)))
+     df3 %>% filter(couple == 2 && as.numeric(aged) > 40 && as.numeric(aged) < 60))
