@@ -99,6 +99,10 @@ df2$sexe <- factor(df2$sexe)
 df2$sexe <-
   fct_recode(df2$sexe, "Homme" = "1", "Femme" = "2")
 
+
+df2 <- df2 |>
+  mutate(age = as.numeric(aged))
+
 # STATISTIQUES DESCRIPTIVES --------------------
 
 # combien de professions
@@ -124,6 +128,26 @@ stats_agregees(df2 %>% filter(sexe == "Femme" & couple == "2") %>% mutate(aged =
 
 #part d'hommes dans chaque cohorte
 temp <- part_total(df2) |> filter(sexe == "Homme")
+
+## Age =============
+
+stats_age <- df2 |> 
+  group_by(decennie = decennie_a_partir_annee(aged)) |>
+  summarise(n())
+
+table_age <- gt(stats_age) |>
+  tab_header(
+    title = "Distribution des âges dans notre population"
+  ) |>
+  fmt_number(
+    columns = `n()`,
+    sep_mark = " ",
+    decimals = 0
+  ) |>
+  cols_label(
+    decennie = "Tranche d'âge",
+    `n()` = "Population"
+  )
 
 # GRAPHIQUES ------------------
 
