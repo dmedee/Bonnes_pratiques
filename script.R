@@ -122,6 +122,7 @@ stats_agregees(df2 %>% filter(sexe == "Femme") %>% mutate(aged = as.numeric(aged
 stats_agregees(df2 %>% filter(sexe == "Homme" & couple == "2") %>% mutate(aged = as.numeric(aged)) %>% pull(aged), "moyenne",na.rm = TRUE)
 stats_agregees(df2 %>% filter(sexe == "Femme" & couple == "2") %>% mutate(aged = as.numeric(aged)) %>% pull(aged),"moyenne", na.rm = TRUE)
 
+#part d'hommes dans chaque cohorte
 temp <- part_total(df2) |> filter(sexe == "Homme")
 
 # GRAPHIQUES ------------------
@@ -138,14 +139,10 @@ ggplot(df2[as.numeric(df2$aged) > 50, c(3, 4)], aes(
   geom_histogram()
 
 # part d'homme dans chaque cohort
-ggplot(df2 %>% group_by(as.numeric(aged, sexe)) 
-       %>% summarise(SH_sexe = n()) 
-       %>% group_by(aged) 
-       %>% summarise(SH_sexe = SH_sexe / sum(SH_sexe)) 
-       %>% filter(sexe == 1))
-        + geom_bar(aes(x = as.numeric(aged), y = SH_sexe), stat = "identity") 
-      + geom_point(aes(x = as.numeric(aged), y = SH_sexe), stat = "identity", color = "red") 
-      + coord_cartesian(c(0, 100))
+ggplot(temp) +
+    geom_bar(aes(x = as.numeric(aged), y = share), stat = "identity") + 
+  geom_point(aes(x = as.numeric(aged), y = share), stat = "identity", color = "red") + 
+  coord_cartesian(c(0, 100))
 # correction (qu'il faudra retirer)
 # ggplot(
 #   df2 %>% group_by(aged, sexe) %>% summarise(SH_sexe = n()) %>% group_by(aged) %>% mutate(SH_sexe = SH_sexe/sum(SH_sexe)) %>% filter(sexe==1)
@@ -154,12 +151,12 @@ ggplot(df2 %>% group_by(as.numeric(aged, sexe))
 
 # stats surf par statut
 df3 <- tibble(df2 |> group_by(couple, surf) %>% summarise(x = n()) %>% group_by(couple) |> mutate(y = 100 * x / sum(x)))
-ggplot(df3) %>%
+ggplot(df3) +
   geom_bar(aes(x = surf, y = y, color = couple), stat = "identity", position = "dodge")
 
 # stats trans par statut
 df3 <- tibble(df2 |> group_by(couple, trans) %>% summarise(x = n()) %>% group_by(couple) |> mutate(y = 100 * x / sum(x)))
-p <- ggplot(df3) +
+ggplot(df3) +
   geom_bar(aes(x = trans, y = y, color = couple), stat = "identity", position = "dodge")
 
 #dir.create("/home/onyxia/formation-bonnes-pratiques-R/output")
@@ -188,8 +185,9 @@ ggsave(p, "p.png")
 # MODELISATION ------------------
 
 df3 <- df2 %>%
-  select(surf, cs1, ur, couple, aged) %>%
+  dplyr::select(surf, cs1, ur, couple, aged) %>%
   filter(surf != "Z")
 df3[, 1] <- factor(df3$surf, ordered = TRUE)
 df3[, "cs1"] <- factor(df3$cs1)
-polr(surf ~ cs1 + factor(ur), df3 %>% filter(couple == "2" && as.numeric(aged > 40 && aged < 60)))
+polr(surf ~ cs1 + factor(ur), 
+     df3 %>% filter(couple == "2" && as.numeric(aged > 40 && aged < 60)))
